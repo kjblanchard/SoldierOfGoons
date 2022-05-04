@@ -31,4 +31,5 @@ void USupergoonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsAccelerating = SupergoonCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0 ? true : false;
 	bWeaponEquipped = SupergoonCharacter->IsWeaponEquipped();
 	bIsCrouched = SupergoonCharacter->bIsCrouched;
+	bIsAiming = SupergoonCharacter->IsAiming();
 }

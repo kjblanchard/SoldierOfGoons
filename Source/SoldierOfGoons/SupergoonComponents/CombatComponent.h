@@ -23,11 +23,17 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void SetAiming(bool bAiming);
+	UFUNCTION(Server,Reliable)
+	void ServerSetAiming(bool bAiming);
 
 private:
 	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon;
 	ASupergoonCharacter* SupergoonCharacter;
+
+	UPROPERTY(Replicated)
+	bool bIsAiming;
 
 		
 };

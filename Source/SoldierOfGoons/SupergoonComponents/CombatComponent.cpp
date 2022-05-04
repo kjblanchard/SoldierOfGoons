@@ -15,33 +15,38 @@ UCombatComponent::UCombatComponent()
 
 void UCombatComponent::EquipWeapon(AWeapon* weaponToEquip)
 {
-	if(SupergoonCharacter == nullptr || weaponToEquip == nullptr)
+	if (SupergoonCharacter == nullptr || weaponToEquip == nullptr)
 		return;
 	EquippedWeapon = weaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	auto rightHandSocket = SupergoonCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-	if(rightHandSocket)
+	if (rightHandSocket)
 	{
 		rightHandSocket->AttachActor(EquippedWeapon, SupergoonCharacter->GetMesh());
 		EquippedWeapon->SetOwner(SupergoonCharacter);
 	}
-
-	
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
 }
 
+void UCombatComponent::SetAiming(bool bAiming)
+{
+	bIsAiming = bAiming;
+	ServerSetAiming(bAiming);
+}
 
-
+void UCombatComponent::ServerSetAiming_Implementation(bool bAiming)
+{
+	bIsAiming = bAiming;
+}

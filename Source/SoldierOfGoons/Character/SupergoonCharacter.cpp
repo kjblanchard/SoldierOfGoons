@@ -66,6 +66,8 @@ void ASupergoonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ASupergoonCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASupergoonCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASupergoonCharacter::AimButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASupergoonCharacter::AimButtonReleased);
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ASupergoonCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ASupergoonCharacter::MoveRight);
@@ -136,6 +138,23 @@ void ASupergoonCharacter::CrouchButtonPressed()
 	}
 }
 
+void ASupergoonCharacter::AimButtonPressed()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->SetAiming(true);
+	}
+	
+}
+
+void ASupergoonCharacter::AimButtonReleased()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->SetAiming(false);
+	}
+}
+
 void ASupergoonCharacter::Turn(float value)
 {
 	AddControllerYawInput(value);
@@ -179,6 +198,11 @@ void ASupergoonCharacter::SetOverlappingWeapon(AWeapon* weapon)
 bool ASupergoonCharacter::IsWeaponEquipped()
 {
 	return CombatComponent && CombatComponent->EquippedWeapon;
+}
+
+bool ASupergoonCharacter::IsAiming()
+{
+	return CombatComponent && CombatComponent->bIsAiming;
 }
 
 void ASupergoonCharacter::Tick(float DeltaTime)
