@@ -4,6 +4,7 @@
 #include "CombatComponent.h"
 
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "SoldierOfGoons/Character/SupergoonCharacter.h"
 #include "SoldierOfGoons/Weapon/Weapon.h"
@@ -24,6 +25,9 @@ void UCombatComponent::EquipWeapon(AWeapon* weaponToEquip)
 	{
 		rightHandSocket->AttachActor(EquippedWeapon, SupergoonCharacter->GetMesh());
 		EquippedWeapon->SetOwner(SupergoonCharacter);
+
+		SupergoonCharacter->bUseControllerRotationYaw = true;
+		SupergoonCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
 }
 
@@ -44,6 +48,15 @@ void UCombatComponent::SetAiming(bool bAiming)
 {
 	bIsAiming = bAiming;
 	ServerSetAiming(bAiming);
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && SupergoonCharacter)
+	{
+		SupergoonCharacter->bUseControllerRotationYaw = true;
+		SupergoonCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bAiming)

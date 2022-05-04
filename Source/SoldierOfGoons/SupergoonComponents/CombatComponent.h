@@ -26,9 +26,11 @@ protected:
 	void SetAiming(bool bAiming);
 	UFUNCTION(Server,Reliable)
 	void ServerSetAiming(bool bAiming);
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 	ASupergoonCharacter* SupergoonCharacter;
 
