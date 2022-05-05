@@ -10,8 +10,10 @@
 #include "SoldierOfGoons/Weapon/Weapon.h"
 
 UCombatComponent::UCombatComponent()
+	:baseWalkSpeed(600.f), aimWalkSpeed(450.f)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* weaponToEquip)
@@ -42,12 +44,29 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if(SupergoonCharacter)
+	{
+		SupergoonCharacter->GetCharacterMovement()->MaxWalkSpeed = baseWalkSpeed;
+	}
 }
 
 void UCombatComponent::SetAiming(bool bAiming)
 {
 	bIsAiming = bAiming;
 	ServerSetAiming(bAiming);
+	if(SupergoonCharacter)
+	{
+		SupergoonCharacter->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? aimWalkSpeed : baseWalkSpeed;
+	}
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bAiming)
+{
+	bIsAiming = bAiming;
+	if(SupergoonCharacter)
+	{
+		SupergoonCharacter->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? aimWalkSpeed : baseWalkSpeed;
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -59,7 +78,3 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
-void UCombatComponent::ServerSetAiming_Implementation(bool bAiming)
-{
-	bIsAiming = bAiming;
-}

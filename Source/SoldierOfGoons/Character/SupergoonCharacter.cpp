@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -35,6 +36,8 @@ ASupergoonCharacter::ASupergoonCharacter()
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("Combat Component");
 	//To make variables on this able to be replicated, you need the following, it basically registers it with the server
 	CombatComponent->SetIsReplicated(true);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void ASupergoonCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
