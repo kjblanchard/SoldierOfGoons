@@ -10,6 +10,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "SoldierOfGoons/SupergoonComponents/CombatComponent.h"
@@ -114,6 +115,9 @@ void ASupergoonCharacter::EquipButtonPressed()
 		}
 		else
 		{
+			//TODO fix this
+			//Doing this currently as something is broken..
+			// CombatComponent->EquipWeapon(OverlappedWeapon);
 			//Note we call this without implementation
 			ServerEquipButtonPressed();
 		}
@@ -125,6 +129,7 @@ void ASupergoonCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (CombatComponent)
 	{
+	UE_LOG(LogTemp, Warning, TEXT("Implementation going, overlap is: %s "), OverlappedWeapon);
 		CombatComponent->EquipWeapon(OverlappedWeapon);
 	}
 }
@@ -143,16 +148,15 @@ void ASupergoonCharacter::CrouchButtonPressed()
 
 void ASupergoonCharacter::AimButtonPressed()
 {
-	if(CombatComponent)
+	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(true);
 	}
-	
 }
 
 void ASupergoonCharacter::AimButtonReleased()
 {
-	if(CombatComponent)
+	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(false);
 	}
@@ -166,6 +170,40 @@ void ASupergoonCharacter::Turn(float value)
 void ASupergoonCharacter::LookUp(float value)
 {
 	AddControllerPitchInput(value);
+}
+
+void ASupergoonCharacter::AimOffset(float deltaTime)
+{
+	if (CombatComponent && CombatComponent->EquippedWeapon == nullptr)
+		return;
+	auto velocity = GetVelocity();
+	velocity.Z = 0;
+	auto speed = velocity.Size();
+	auto bIsInAir = GetCharacterMovement()->IsFalling();
+
+	//Standing still and not jumping
+	if (speed == 0.f && !bIsInAir)
+	{
+		auto currentAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+		FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(currentAimRotation, StartingAimRotation);
+		AO_Yaw = deltaAimRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	if (speed > 0 || bIsInAir)
+	{
+		StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+		AO_Yaw = 0;
+		bUseControllerRotationYaw = true;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90 && !IsLocallyControlled())
+	{
+		//Map Pictch from 270-360 to -90 -0 (Happens cause UE will compress info (doubles) when sending to server for efficiency
+		FVector2d InRange(270.f, 360.f);
+		FVector2d OutRange(-90.f, 0);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
 }
 
 /**
@@ -211,4 +249,5 @@ bool ASupergoonCharacter::IsAiming()
 void ASupergoonCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	AimOffset(DeltaTime);
 }

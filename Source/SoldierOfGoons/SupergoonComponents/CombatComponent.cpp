@@ -10,14 +10,21 @@
 #include "SoldierOfGoons/Weapon/Weapon.h"
 
 UCombatComponent::UCombatComponent()
-	:baseWalkSpeed(600.f), aimWalkSpeed(450.f)
+	: baseWalkSpeed(600.f), aimWalkSpeed(450.f)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* weaponToEquip)
 {
+	if (SupergoonCharacter->IsLocallyControlled())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Equipping"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Running equip on the server"));
+	}
 	if (SupergoonCharacter == nullptr || weaponToEquip == nullptr)
 		return;
 	EquippedWeapon = weaponToEquip;
@@ -31,7 +38,11 @@ void UCombatComponent::EquipWeapon(AWeapon* weaponToEquip)
 		SupergoonCharacter->bUseControllerRotationYaw = true;
 		SupergoonCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
+	EquippedWeapon->SetOwner(SupergoonCharacter);
+	SupergoonCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	SupergoonCharacter->bUseControllerRotationYaw = true;
 }
+
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -44,7 +55,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if(SupergoonCharacter)
+	if (SupergoonCharacter)
 	{
 		SupergoonCharacter->GetCharacterMovement()->MaxWalkSpeed = baseWalkSpeed;
 	}
@@ -54,7 +65,7 @@ void UCombatComponent::SetAiming(bool bAiming)
 {
 	bIsAiming = bAiming;
 	ServerSetAiming(bAiming);
-	if(SupergoonCharacter)
+	if (SupergoonCharacter)
 	{
 		SupergoonCharacter->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? aimWalkSpeed : baseWalkSpeed;
 	}
@@ -63,7 +74,7 @@ void UCombatComponent::SetAiming(bool bAiming)
 void UCombatComponent::ServerSetAiming_Implementation(bool bAiming)
 {
 	bIsAiming = bAiming;
-	if(SupergoonCharacter)
+	if (SupergoonCharacter)
 	{
 		SupergoonCharacter->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? aimWalkSpeed : baseWalkSpeed;
 	}
@@ -77,4 +88,3 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		SupergoonCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
 }
-

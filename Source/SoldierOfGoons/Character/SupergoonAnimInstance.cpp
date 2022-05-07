@@ -31,8 +31,11 @@ void USupergoonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = SupergoonCharacter->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = SupergoonCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0 ? true : false;
 	bWeaponEquipped = SupergoonCharacter->IsWeaponEquipped();
+	
 	bIsCrouched = SupergoonCharacter->bIsCrouched;
 	bIsAiming = SupergoonCharacter->IsAiming();
+	AO_Yaw = SupergoonCharacter->GetAO_Yaw();
+	AO_Pitch = SupergoonCharacter->GetAO_Pitch();
 
 
 	//Offset yaw for strafing

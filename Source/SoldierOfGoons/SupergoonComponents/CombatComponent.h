@@ -32,6 +32,7 @@ protected:
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+	
 	ASupergoonCharacter* SupergoonCharacter;
 
 	UPROPERTY(Replicated)
