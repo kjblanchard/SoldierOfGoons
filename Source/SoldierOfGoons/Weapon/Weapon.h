@@ -46,6 +46,7 @@ protected:
 public:
 	FORCEINLINE void SetWeaponState(EWeaponState state);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere;}
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh;}
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")

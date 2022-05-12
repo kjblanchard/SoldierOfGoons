@@ -6,6 +6,7 @@
 #include "SupergoonCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "SoldierOfGoons/Weapon/Weapon.h"
 
 void USupergoonAnimInstance::NativeInitializeAnimation()
 {
@@ -31,6 +32,8 @@ void USupergoonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = SupergoonCharacter->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = SupergoonCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0 ? true : false;
 	bWeaponEquipped = SupergoonCharacter->IsWeaponEquipped();
+	EquippedWeapon = SupergoonCharacter->GetEquippedWeapon();
+	TurningInPlace = SupergoonCharacter->GetTurningInPlace();
 	
 	bIsCrouched = SupergoonCharacter->bIsCrouched;
 	bIsAiming = SupergoonCharacter->IsAiming();
@@ -51,6 +54,19 @@ void USupergoonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const auto target = deltaRotation.Yaw / DeltaSeconds;
 	const auto interp = FMath::FInterpTo(Lean, target, DeltaSeconds, 6.0f);
 	Lean = FMath::Clamp(interp, -90.f, 90.f);
+
+	//FABRIK IK
+	if(bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && SupergoonCharacter->GetMesh())
+	{
+		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+		FVector outLocation;
+		FRotator outRotation;
+		SupergoonCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, outLocation, outRotation );
+		LeftHandTransform.SetLocation(outLocation);
+		LeftHandTransform.SetRotation(FQuat(outRotation));
+		
+		
+	}
 	
 	
 }

@@ -39,6 +39,10 @@ ASupergoonCharacter::ASupergoonCharacter()
 	CombatComponent->SetIsReplicated(true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+
+	NetUpdateFrequency = 66;
+	MinNetUpdateFrequency = 33;
 }
 
 void ASupergoonCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -129,7 +133,7 @@ void ASupergoonCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (CombatComponent)
 	{
-	UE_LOG(LogTemp, Warning, TEXT("Implementation going, overlap is: %s "), OverlappedWeapon);
+		UE_LOG(LogTemp, Warning, TEXT("Implementation going, overlap is: %s "), OverlappedWeapon);
 		CombatComponent->EquipWeapon(OverlappedWeapon);
 	}
 }
@@ -187,13 +191,20 @@ void ASupergoonCharacter::AimOffset(float deltaTime)
 		auto currentAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
 		FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(currentAimRotation, StartingAimRotation);
 		AO_Yaw = deltaAimRotation.Yaw;
-		bUseControllerRotationYaw = false;
+		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+			InterpAO_Yaw = AO_Yaw;
+		bUseControllerRotationYaw = true;
+		TurnInPlace(deltaTime);
 	}
+
+	//If we are moving or in the air
 	if (speed > 0 || bIsInAir)
 	{
+		//We do not want to use our yaw movement, we want it to stay straight
 		StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
 		AO_Yaw = 0;
 		bUseControllerRotationYaw = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
@@ -223,6 +234,28 @@ void ASupergoonCharacter::OnRep_OverlappingWeapon(AWeapon* lastWeapon)
 }
 
 
+void ASupergoonCharacter::TurnInPlace(float deltaTime)
+{
+	if (AO_Yaw > 90.0f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Right;
+	}
+	else if (AO_Yaw < -90.0f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Left;
+	}
+	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
+	{
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, deltaTime, 6.0);
+		AO_Yaw = InterpAO_Yaw;
+		if (FMath::Abs(AO_Yaw) < 15.0f)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+		}
+	}
+}
+
 void ASupergoonCharacter::SetOverlappingWeapon(AWeapon* weapon)
 {
 	//Handle if WE ARE THE SERVER/HOST since replication does not send notifys to the server, only clients.
@@ -244,6 +277,12 @@ bool ASupergoonCharacter::IsWeaponEquipped()
 bool ASupergoonCharacter::IsAiming()
 {
 	return CombatComponent && CombatComponent->bIsAiming;
+}
+
+AWeapon* ASupergoonCharacter::GetEquippedWeapon()
+{
+	if (CombatComponent == nullptr) return nullptr;
+	return CombatComponent->EquippedWeapon;
 }
 
 void ASupergoonCharacter::Tick(float DeltaTime)

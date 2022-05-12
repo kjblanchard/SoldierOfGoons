@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "SoldierOfGoons/SupergoonTypes/TurningInPlace.h"
 #include "SupergoonCharacter.generated.h"
 
 UCLASS()
@@ -54,13 +55,19 @@ private:
 	void ServerEquipButtonPressed();
 
 	float AO_Yaw;
+	float InterpAO_Yaw;
 	float AO_Pitch;
 	FRotator StartingAimRotation;
+	ETurningInPlace TurningInPlace;
+
+	void TurnInPlace(float deltaTime);
 
 public:
 	void SetOverlappingWeapon(AWeapon* weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
+	AWeapon* GetEquippedWeapon();
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	FORCEINLINE ETurningInPlace GetTurningInPlace() const {return TurningInPlace;}
 };
